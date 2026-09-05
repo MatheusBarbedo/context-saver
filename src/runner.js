@@ -45,14 +45,14 @@ export function runAndCompress(command, { shell, exec = defaultExec, metricsFile
     } catch {
       compressed = null;
     }
-    if (compressed == null) {
-      try {
-        compressed = genericFilter.run({ command, stdout: rawStdout, stderr: rawStderr, exitCode });
-      } catch {
-        compressed = null;
-      }
-      if (compressed != null) familyName = 'generic';
+  }
+  if (compressed == null) {
+    try {
+      compressed = genericFilter.run({ command, stdout: rawStdout, stderr: rawStderr, exitCode });
+    } catch {
+      compressed = null;
     }
+    if (compressed != null) familyName = 'generic';
   }
 
   const rawFull = rawStdout + rawStderr;

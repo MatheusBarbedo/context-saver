@@ -27,6 +27,14 @@ test('comando sem filtro passa saída intacta', () => {
   assert.equal(r.stdout, 'oi\n');
 });
 
+test('comando sem família reconhecida ainda cai no genérico se a saída for enorme', () => {
+  const many = Array.from({ length: 200 }, (_, i) => `linha ${i}`).join('\n');
+  const r = runAndCompress('gh repo view', { exec: fakeExec({ stdout: many, stderr: '', status: 0 }), metricsFile: metricsFile() });
+  assert.equal(r.filtered, true);
+  assert.match(r.stdout, /…/);
+  assert.ok(r.stdout.length < many.length);
+});
+
 test('exit code real é propagado', () => {
   const r = runAndCompress('pytest', { exec: fakeExec({ stdout: 'x FAILED', stderr: '', status: 3 }), metricsFile: metricsFile() });
   assert.equal(r.exitCode, 3);
