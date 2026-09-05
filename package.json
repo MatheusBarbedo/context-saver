@@ -1,0 +1,10 @@
+{
+  "name": "context-saver",
+  "version": "0.1.0",
+  "description": "Economizador de tokens para Claude Code e Copilot (Node puro, zero deps)",
+  "type": "module",
+  "bin": { "econ": "econ.js" },
+  "scripts": {
+    "test": "node --test"
+  }
+}
