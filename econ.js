@@ -18,9 +18,14 @@ function readStdin() {
 
 function decodeRunArgs(args) {
   let shell;
+  let agent;
   const rest = [...args];
   if (rest[0] === '--shell' && rest[1]) {
     shell = rest[1];
+    rest.splice(0, 2);
+  }
+  if (rest[0] === '--agent' && rest[1]) {
+    agent = rest[1];
     rest.splice(0, 2);
   }
   let command;
@@ -29,7 +34,7 @@ function decodeRunArgs(args) {
   } else {
     command = rest.join(' ');
   }
-  return { command, shell };
+  return { command, shell, agent };
 }
 
 const [cmd, ...rest] = process.argv.slice(2);
@@ -42,8 +47,8 @@ switch (cmd) {
     break;
   }
   case 'run': {
-    const { command, shell } = decodeRunArgs(rest);
-    const { stdout, stderr, exitCode } = runAndCompress(command, { shell });
+    const { command, shell, agent } = decodeRunArgs(rest);
+    const { stdout, stderr, exitCode } = runAndCompress(command, { shell, agent });
     if (stdout) process.stdout.write(stdout.endsWith('\n') ? stdout : stdout + '\n');
     if (stderr) process.stderr.write(stderr);
     process.exit(exitCode);
@@ -83,6 +88,10 @@ switch (cmd) {
     console.log('Por família:');
     for (const [fam, f] of Object.entries(a.byFamily)) {
       console.log(`  ${fam}: ${f.tokensBefore} → ${f.tokensAfter} (${f.count}x)`);
+    }
+    console.log('Por agente:');
+    for (const [agent, ag] of Object.entries(a.byAgent)) {
+      console.log(`  ${agent}: ${ag.tokensBefore} → ${ag.tokensAfter} (${ag.count}x)`);
     }
     break;
   }

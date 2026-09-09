@@ -23,10 +23,11 @@ function neutral() {
   return { output: '', exitCode: 0 };
 }
 
-function wrap(command, econJs, shell) {
+function wrap(command, econJs, shell, agent) {
   const b64 = Buffer.from(command, 'utf8').toString('base64');
   const shellArg = shell ? `--shell ${shell} ` : '';
-  return `node "${econJs}" run ${shellArg}--b64 ${b64}`;
+  const agentArg = agent ? `--agent ${agent} ` : '';
+  return `node "${econJs}" run ${shellArg}${agentArg}--b64 ${b64}`;
 }
 
 function rewriteClaude(wrapped) {
@@ -61,7 +62,7 @@ export function handle(inputString, { enabled = true, econJs = ECON_JS } = {}) {
   if (command.includes('econ.js')) return neutral();
   if (!findFilter(command)) return neutral();
 
-  const wrapped = wrap(command, econJs, shellFor(tool));
+  const wrapped = wrap(command, econJs, shellFor(tool), agent);
   const output = agent === 'claude' ? rewriteClaude(wrapped) : rewriteCopilot(wrapped);
   return { output, exitCode: 0 };
 }

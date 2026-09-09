@@ -13,7 +13,7 @@ test('Claude: comando-alvo é reescrito via updatedInput', () => {
   const { output } = handle(input, { enabled: true, econJs: ECON });
   const j = JSON.parse(output);
   assert.equal(j.hookSpecificOutput.hookEventName, 'PreToolUse');
-  assert.match(j.hookSpecificOutput.updatedInput.command, /econ\.js" run --shell bash --b64 /);
+  assert.match(j.hookSpecificOutput.updatedInput.command, /econ\.js" run --shell bash --agent claude --b64 /);
 });
 
 test('Copilot: comando-alvo é reescrito via modifiedArgs', () => {
@@ -24,7 +24,7 @@ test('Copilot: comando-alvo é reescrito via modifiedArgs', () => {
   const { output } = handle(input, { enabled: true, econJs: ECON });
   const j = JSON.parse(output);
   assert.equal(j.permissionDecision, 'allow');
-  assert.match(j.modifiedArgs.command, /econ\.js" run --shell bash --b64 /);
+  assert.match(j.modifiedArgs.command, /econ\.js" run --shell bash --agent copilot --b64 /);
 });
 
 test('Copilot powershell: comando reescrito usa --shell powershell', () => {
@@ -34,7 +34,7 @@ test('Copilot powershell: comando reescrito usa --shell powershell', () => {
   });
   const { output } = handle(input, { enabled: true, econJs: ECON });
   const j = JSON.parse(output);
-  assert.match(j.modifiedArgs.command, /econ\.js" run --shell powershell --b64 /);
+  assert.match(j.modifiedArgs.command, /econ\.js" run --shell powershell --agent copilot --b64 /);
 });
 
 test('comando fora do alvo passa neutro (output vazio)', () => {

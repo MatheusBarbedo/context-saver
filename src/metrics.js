@@ -21,6 +21,7 @@ export function aggregate(file = METRICS_FILE) {
     totalTokensBefore: 0,
     totalTokensAfter: 0,
     byFamily: {},
+    byAgent: {},
   };
   if (!existsSync(file)) return agg;
   const lines = readFileSync(file, 'utf8').split('\n').filter(Boolean);
@@ -45,6 +46,16 @@ export function aggregate(file = METRICS_FILE) {
     f.bytesAfter += e.bytesAfter || 0;
     f.tokensBefore += e.tokensBefore || 0;
     f.tokensAfter += e.tokensAfter || 0;
+
+    const agent = e.agent || 'unknown';
+    const a =
+      agg.byAgent[agent] ||
+      (agg.byAgent[agent] = { count: 0, bytesBefore: 0, bytesAfter: 0, tokensBefore: 0, tokensAfter: 0 });
+    a.count++;
+    a.bytesBefore += e.bytesBefore || 0;
+    a.bytesAfter += e.bytesAfter || 0;
+    a.tokensBefore += e.tokensBefore || 0;
+    a.tokensAfter += e.tokensAfter || 0;
   }
   return agg;
 }

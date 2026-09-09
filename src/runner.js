@@ -30,7 +30,7 @@ function defaultExec(command, shellHint) {
   return spawnSync(command, { ...base, shell: true });
 }
 
-export function runAndCompress(command, { shell, exec = defaultExec, metricsFile = METRICS_FILE } = {}) {
+export function runAndCompress(command, { shell, agent, exec = defaultExec, metricsFile = METRICS_FILE } = {}) {
   const res = exec(command, shell) || {};
   const rawStdout = res.stdout ?? '';
   const rawStderr = res.stderr ?? '';
@@ -61,6 +61,7 @@ export function runAndCompress(command, { shell, exec = defaultExec, metricsFile
   record(
     {
       family: familyName,
+      agent: agent || 'unknown',
       bytesBefore: Buffer.byteLength(rawFull, 'utf8'),
       bytesAfter: Buffer.byteLength(outText, 'utf8'),
       tokensBefore: estimateTokens(rawFull),

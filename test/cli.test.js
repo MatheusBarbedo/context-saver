@@ -21,7 +21,7 @@ test('hook reescreve git status vindo do Claude', () => {
   const r = runEcon(['hook'], input);
   assert.equal(r.status, 0);
   assert.match(r.stdout, /updatedInput/);
-  assert.match(r.stdout, /run --shell bash --b64/);
+  assert.match(r.stdout, /run --shell bash --agent claude --b64/);
 });
 
 test('hook com comando neutro não imprime nada', () => {
@@ -40,6 +40,13 @@ test('stats imprime relatório de tokens', () => {
   const r = runEcon(['stats']);
   assert.equal(r.status, 0);
   assert.match(r.stdout, /Tokens:/);
+  assert.match(r.stdout, /Por agente:/);
+});
+
+test('run --agent propaga o agente para a métrica', () => {
+  const b64 = Buffer.from('exit 0', 'utf8').toString('base64');
+  const r = runEcon(['run', '--agent', 'copilot', '--b64', b64]);
+  assert.equal(r.status, 0);
 });
 
 test('show sem id sai com erro', () => {

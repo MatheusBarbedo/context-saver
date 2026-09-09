@@ -58,6 +58,28 @@ test('runAndCompress grava métrica quando filtra', () => {
   rmSync(dir, { recursive: true, force: true });
 });
 
+test('runAndCompress grava o agente na métrica', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'econ-ra-'));
+  const file = join(dir, 'metrics.jsonl');
+  runAndCompress('git status', {
+    agent: 'copilot',
+    exec: fakeExec({ stdout: 'On branch main\n  (use "git add" ...)', stderr: '', status: 0 }),
+    metricsFile: file,
+  });
+  const rec = JSON.parse(readFileSync(file, 'utf8').split('\n').filter(Boolean)[0]);
+  assert.equal(rec.agent, 'copilot');
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('runAndCompress sem agente grava "unknown"', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'econ-ra2-'));
+  const file = join(dir, 'metrics.jsonl');
+  runAndCompress('echo oi', { exec: fakeExec({ stdout: 'oi\n', stderr: '', status: 0 }), metricsFile: file });
+  const rec = JSON.parse(readFileSync(file, 'utf8').split('\n').filter(Boolean)[0]);
+  assert.equal(rec.agent, 'unknown');
+  rmSync(dir, { recursive: true, force: true });
+});
+
 test('shellCandidates prioriza ECON_SHELL e inclui bash + caminhos conhecidos', () => {
   const c = shellCandidates('bash', { ECON_SHELL: 'X:\\meu\\bash.exe' });
   assert.equal(c[0], 'X:\\meu\\bash.exe');
