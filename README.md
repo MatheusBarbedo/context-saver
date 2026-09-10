@@ -6,7 +6,7 @@ Configura uma vez e a saída de comandos verbosos (`git status`, `npm test`, `ts
 Node.js puro, **zero dependências**, **sem `npm install`**.
 
 O hook mora na configuração global de cada agente (`~/.claude`, `~/.copilot`,
-`~/.codex`), não em nada específico do VSCode. Funciona igual rodando o agente
+`~/.codex`). Funciona igual rodando o agente
 pelo terminal puro, por SSH ou de dentro do VSCode, já que todos esses lugares
 chamam o mesmo binário do agente por baixo.
 
