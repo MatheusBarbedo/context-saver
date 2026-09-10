@@ -3,9 +3,10 @@ import { readFileSync } from 'node:fs';
 import { handle } from './src/hook-adapter.js';
 import { runAndCompress } from './src/runner.js';
 import { isEnabled, setEnabled } from './src/state.js';
-import { installClaude, installCopilot, statusPaths } from './src/installer.js';
+import { installClaude, installCopilot, uninstallClaude, uninstallCopilot, statusPaths } from './src/installer.js';
 import { aggregate } from './src/metrics.js';
 import { readRecovery } from './src/show.js';
+import { purgeData } from './src/state.js';
 import { runChecks, applyFix } from './src/doctor.js';
 
 function readStdin() {
@@ -61,6 +62,21 @@ switch (cmd) {
     else {
       console.log('Claude:', installClaude());
       console.log('Copilot:', installCopilot());
+    }
+    break;
+  }
+  case 'uninstall': {
+    const purge = rest.includes('--purge');
+    const target = rest.find((a) => a !== '--purge');
+    if (target === 'claude') console.log('Claude hook removido de', uninstallClaude());
+    else if (target === 'copilot') console.log('Copilot hook removido de', uninstallCopilot());
+    else {
+      console.log('Claude:', uninstallClaude());
+      console.log('Copilot:', uninstallCopilot());
+    }
+    if (purge) {
+      purgeData();
+      console.log('Métricas e estado apagados (~/.context-saver)');
     }
     break;
   }
@@ -129,7 +145,7 @@ switch (cmd) {
   }
   default:
     console.log(
-      'Uso: node econ.js <install [claude|copilot] | on | off | status | stats | show <id> | doctor | hook | run <cmd>>',
+      'Uso: node econ.js <install [claude|copilot] | uninstall [claude|copilot] [--purge] | on | off | status | stats | show <id> | doctor | hook | run <cmd>>',
     );
     process.exit(cmd ? 1 : 0);
 }
