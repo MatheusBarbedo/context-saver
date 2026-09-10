@@ -18,15 +18,23 @@ test('run --b64 executa e propaga exit code', () => {
 
 test('hook reescreve git status vindo do Claude', () => {
   const input = JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'git status' } });
-  const r = runEcon(['hook'], input);
+  const r = runEcon(['hook', '--agent', 'claude'], input);
   assert.equal(r.status, 0);
   assert.match(r.stdout, /updatedInput/);
   assert.match(r.stdout, /run --shell bash --agent claude --b64/);
 });
 
+test('hook reescreve comando vindo do Codex (mesma forma de payload do Claude)', () => {
+  const input = JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'git status' } });
+  const r = runEcon(['hook', '--agent', 'codex'], input);
+  assert.equal(r.status, 0);
+  assert.match(r.stdout, /updatedInput/);
+  assert.match(r.stdout, /run --shell bash --agent codex --b64/);
+});
+
 test('hook com comando neutro não imprime nada', () => {
   const input = JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'echo oi' } });
-  const r = runEcon(['hook'], input);
+  const r = runEcon(['hook', '--agent', 'claude'], input);
   assert.equal(r.stdout.trim(), '');
 });
 

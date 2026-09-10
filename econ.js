@@ -3,7 +3,15 @@ import { readFileSync } from 'node:fs';
 import { handle } from './src/hook-adapter.js';
 import { runAndCompress } from './src/runner.js';
 import { isEnabled, setEnabled } from './src/state.js';
-import { installClaude, installCopilot, uninstallClaude, uninstallCopilot, statusPaths } from './src/installer.js';
+import {
+  installClaude,
+  installCopilot,
+  installCodex,
+  uninstallClaude,
+  uninstallCopilot,
+  uninstallCodex,
+  statusPaths,
+} from './src/installer.js';
 import { aggregate } from './src/metrics.js';
 import { readRecovery } from './src/show.js';
 import { purgeData } from './src/state.js';
@@ -42,7 +50,8 @@ const [cmd, ...rest] = process.argv.slice(2);
 
 switch (cmd) {
   case 'hook': {
-    const { output, exitCode } = handle(readStdin(), { enabled: isEnabled() });
+    const agent = rest[0] === '--agent' ? rest[1] : undefined;
+    const { output, exitCode } = handle(readStdin(), { enabled: isEnabled(), agent });
     if (output) process.stdout.write(output);
     process.exit(exitCode);
     break;
@@ -59,9 +68,11 @@ switch (cmd) {
     const target = rest[0];
     if (target === 'claude') console.log('Claude hook instalado em', installClaude());
     else if (target === 'copilot') console.log('Copilot hook instalado em', installCopilot());
+    else if (target === 'codex') console.log('Codex hook instalado em', installCodex());
     else {
       console.log('Claude:', installClaude());
       console.log('Copilot:', installCopilot());
+      console.log('Codex:', installCodex());
     }
     break;
   }
@@ -70,9 +81,11 @@ switch (cmd) {
     const target = rest.find((a) => a !== '--purge');
     if (target === 'claude') console.log('Claude hook removido de', uninstallClaude());
     else if (target === 'copilot') console.log('Copilot hook removido de', uninstallCopilot());
+    else if (target === 'codex') console.log('Codex hook removido de', uninstallCodex());
     else {
       console.log('Claude:', uninstallClaude());
       console.log('Copilot:', uninstallCopilot());
+      console.log('Codex:', uninstallCodex());
     }
     if (purge) {
       purgeData();
@@ -93,6 +106,7 @@ switch (cmd) {
     console.log('Ativo:', isEnabled() ? 'sim' : 'não');
     console.log('Claude hook:', s.claude.installed ? 'instalado' : 'não', `(${s.claude.path})`);
     console.log('Copilot hook:', s.copilot.installed ? 'instalado' : 'não', `(${s.copilot.path})`);
+    console.log('Codex hook:', s.codex.installed ? 'instalado' : 'não', `(${s.codex.path})`);
     break;
   }
   case 'stats': {
@@ -145,7 +159,7 @@ switch (cmd) {
   }
   default:
     console.log(
-      'Uso: node econ.js <install [claude|copilot] | uninstall [claude|copilot] [--purge] | on | off | status | stats | show <id> | doctor | hook | run <cmd>>',
+      'Uso: node econ.js <install [claude|copilot|codex] | uninstall [claude|copilot|codex] [--purge] | on | off | status | stats | show <id> | doctor | hook | run <cmd>>',
     );
     process.exit(cmd ? 1 : 0);
 }
