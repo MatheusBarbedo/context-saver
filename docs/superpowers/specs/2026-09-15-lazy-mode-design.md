@@ -66,8 +66,11 @@ independentes uma da outra.
 
 ### Estado
 
-Novo arquivo `~/.context-saver/lazy-state.json`, no mesmo espírito do `state.json` que
-já existe pro on/off da compressão:
+Um arquivo por agente — `~/.context-saver/lazy-state-<claude|copilot|codex>.json` —
+pra sessões de agentes diferentes não pisarem no nível uma da outra (o Ponytail
+original também isola por diretório de cada agente, não usa um flag compartilhado).
+Mesmo espírito do `state.json` que já existe pro on/off da compressão, e cai dentro do
+mesmo `~/.context-saver/` que `econ.js uninstall --purge` já apaga por completo:
 
 ```json
 { "mode": "full", "defaultMode": "full" }
