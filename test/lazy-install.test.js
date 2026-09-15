@@ -4,6 +4,9 @@ import {
   addClaudeLazyHooks,
   removeClaudeLazyHooks,
   hasClaudeLazyHooks,
+  addCodexLazyHooks,
+  removeCodexLazyHooks,
+  hasCodexLazyHooks,
 } from '../src/lazy/install.js';
 
 test('addClaudeLazyHooks adiciona os 3 eventos', () => {
@@ -42,5 +45,32 @@ test('removeClaudeLazyHooks tira só os hooks lazy, mantém PreToolUse', () => {
   );
   const next = removeClaudeLazyHooks(withBoth);
   assert.equal(hasClaudeLazyHooks(next), false);
+  assert.equal(next.hooks.PreToolUse.length, 1);
+});
+
+test('addCodexLazyHooks adiciona os 3 eventos', () => {
+  const next = addCodexLazyHooks({}, '/x/econ.js');
+  assert.equal(next.hooks.SessionStart.length, 1);
+  assert.equal(next.hooks.UserPromptSubmit.length, 1);
+  assert.equal(next.hooks.SubagentStart.length, 1);
+  assert.ok(next.hooks.SessionStart[0].command.includes('lazy-hook'));
+});
+
+test('addCodexLazyHooks é idempotente', () => {
+  let next = addCodexLazyHooks({}, '/x/econ.js');
+  next = addCodexLazyHooks(next, '/x/econ.js');
+  assert.equal(next.hooks.SessionStart.length, 1);
+});
+
+test('addCodexLazyHooks preserva PreToolUse existente', () => {
+  const withPreToolUse = { hooks: { PreToolUse: [{ command: 'node x hook --agent codex' }] } };
+  const next = addCodexLazyHooks(withPreToolUse, '/x/econ.js');
+  assert.equal(next.hooks.PreToolUse.length, 1);
+});
+
+test('removeCodexLazyHooks tira só os hooks lazy', () => {
+  const withBoth = addCodexLazyHooks({ hooks: { PreToolUse: [{ command: 'node x hook --agent codex' }] } }, '/x/econ.js');
+  const next = removeCodexLazyHooks(withBoth);
+  assert.equal(hasCodexLazyHooks(next), false);
   assert.equal(next.hooks.PreToolUse.length, 1);
 });

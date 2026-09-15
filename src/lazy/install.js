@@ -41,3 +41,33 @@ export function hasClaudeLazyHooks(settings) {
   const groups = settings?.hooks?.SessionStart ?? [];
   return groups.some((g) => (g.hooks ?? []).some(isLazyEntry));
 }
+
+const LAZY_EVENTS = [
+  ['SessionStart', 'session-start'],
+  ['UserPromptSubmit', 'prompt-submit'],
+  ['SubagentStart', 'subagent-start'],
+];
+
+export function removeCodexLazyHooks(config) {
+  const next = structuredClone(config ?? {});
+  for (const [event] of LAZY_EVENTS) {
+    if (!next.hooks?.[event]) continue;
+    next.hooks[event] = next.hooks[event].filter((h) => !isLazyEntry(h));
+  }
+  return next;
+}
+
+export function addCodexLazyHooks(config, econJs) {
+  const next = removeCodexLazyHooks(config ?? {});
+  next.hooks = next.hooks ?? {};
+  for (const [event, name] of LAZY_EVENTS) {
+    next.hooks[event] = next.hooks[event] ?? [];
+    next.hooks[event].push({ command: lazyHookCommand(econJs, 'codex', name) });
+  }
+  return next;
+}
+
+export function hasCodexLazyHooks(config) {
+  const list = config?.hooks?.SessionStart ?? [];
+  return list.some(isLazyEntry);
+}
