@@ -61,3 +61,21 @@ test('show sem id sai com erro', () => {
   const r = runEcon(['show']);
   assert.equal(r.status, 1);
 });
+
+test('lazy-hook session-start imprime o modo ativo', () => {
+  const r = runEcon(['lazy-hook', '--agent', 'claude', '--event', 'session-start'], '{}');
+  assert.equal(r.status, 0);
+  assert.match(r.stdout, /^MODO ECONÔMICO ATIVO/);
+});
+
+test('lazy-hook com evento desconhecido escreve no stderr e sai com 0', () => {
+  const r = runEcon(['lazy-hook', '--agent', 'claude', '--event', 'bogus-event'], '{}');
+  assert.equal(r.status, 0);
+  assert.match(r.stderr, /evento de hook desconhecido/);
+});
+
+test('lazy-hook sem --event vira evento undefined e nao quebra', () => {
+  const r = runEcon(['lazy-hook', '--agent', 'claude'], '{}');
+  assert.equal(r.status, 0);
+  assert.match(r.stderr, /evento de hook desconhecido: undefined/);
+});

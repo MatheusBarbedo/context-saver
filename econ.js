@@ -16,6 +16,12 @@ import { aggregate } from './src/metrics.js';
 import { readRecovery } from './src/show.js';
 import { purgeData } from './src/state.js';
 import { runChecks, applyFix } from './src/doctor.js';
+import { dispatchLazyHook } from './src/lazy/dispatch.js';
+
+function flagValue(args, flag) {
+  const i = args.indexOf(flag);
+  return i === -1 ? undefined : args[i + 1];
+}
 
 function readStdin() {
   try {
@@ -54,6 +60,24 @@ switch (cmd) {
     const { output, exitCode } = handle(readStdin(), { enabled: isEnabled(), agent });
     if (output) process.stdout.write(output);
     process.exit(exitCode);
+    break;
+  }
+  case 'lazy-hook': {
+    const agent = flagValue(rest, '--agent');
+    const event = flagValue(rest, '--event');
+    let payload = {};
+    try {
+      payload = JSON.parse(readStdin() || '{}');
+    } catch {
+      payload = {};
+    }
+    try {
+      const output = dispatchLazyHook({ agent, event, payload });
+      if (output) process.stdout.write(output);
+    } catch (e) {
+      process.stderr.write(String(e.message || e));
+    }
+    process.exit(0);
     break;
   }
   case 'run': {
