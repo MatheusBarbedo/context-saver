@@ -34,6 +34,19 @@ ESM, zero dependências, sem `npm install`.
 - `src/state.js` / `src/installer.js` — liga/desliga em `~/.context-saver/state.json`
   e instala hooks (Claude em `~/.claude/settings.json`, Copilot em
   `~/.copilot/hooks/context-saver.json`).
+- `src/lazy/state.js` — estado por agente do modo econômico de código (nível de
+  sessão + nível padrão) em `~/.context-saver/lazy-state-<agente>.json`.
+- `src/lazy/instructions.js` — lê `skills/econ-lazy/SKILL.md` e filtra pelo nível
+  ativo (lite/full/ultra).
+- `src/lazy/hooks.js` / `src/lazy/dispatch.js` — lógica dos hooks `SessionStart`/
+  `UserPromptSubmit`/`SubagentStart` e formatação da saída por agente.
+- `src/lazy/debt.js` — scanner determinístico de marcadores `econ: <limite>,
+  <gatilho>` (`econ.js lazy debt`).
+- `src/lazy/install.js` — construtores puros (sem I/O) dos hooks lazy pra
+  Claude/Codex/Copilot.
+- `src/lazy/setup.js` — instala/desinstala os hooks lazy, as 6 skills e a
+  statusline (Claude Code) usando os construtores de `install.js`, independente
+  do hook de compressão de saída.
 
 ## Decisão de design importante
 
@@ -46,6 +59,9 @@ Ao adicionar filtros, preserve essa fronteira.
 ## Convenções
 
 - Zero comentários no código, sem exceção.
+- Exceção única: comentário `econ: <limite>, <gatilho>` deixado pelo modo econômico
+  de código pra marcar atalho deliberado — é dívida rastreável, não explicação de
+  código. Rastreável via `econ.js lazy debt`.
 - Zero dependências; só APIs nativas do Node.
 - Todo filtro novo: criar `src/filters/<familia>.js`, registrar em `index.js` antes
   do fallback, e escrever `test/filters.<familia>.test.js`.
