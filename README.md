@@ -131,6 +131,30 @@ filtro **genérico** para qualquer outra saída longa.
 2. Registre em `src/filters/index.js` (`ALL_FILTERS`), antes de `genericFilters`.
 3. Escreva `test/filters.<familia>.test.js` e rode `node --test`.
 
+## Modo econômico de código (`econ.js lazy`)
+
+Além de comprimir saída de comando, o context-saver também injeta uma escada de
+decisão de código mínimo — conceito adaptado do
+[Ponytail](https://github.com/dietrichgebert/ponytail) (MIT) — direto no agente via
+hooks `SessionStart`/`UserPromptSubmit`/`SubagentStart`, com níveis `lite`/`full`
+(padrão)/`ultra`.
+
+```powershell
+node econ.js lazy install [claude|copilot|codex]   # ativa a escada (hooks + skills + statusline no claude)
+node econ.js lazy uninstall [claude|copilot|codex] [--purge]
+node econ.js lazy status                           # o que está instalado, por agente
+node econ.js lazy default <off|lite|full|ultra>    # nível padrão de toda sessão nova
+node econ.js lazy debt                             # lista os atalhos marcados com `econ: <limite>, <gatilho>`
+```
+
+Durante a sessão, troque de nível com `/lazy lite|full|ultra|off` ou desative com
+"stop lazy"/"modo normal" — sticky até você mudar de novo ou a sessão acabar. O
+Claude Code também ganha 5 skills extras (`econ-lazy-review`, `econ-lazy-audit`,
+`econ-lazy-debt`, `econ-lazy-gain`, `econ-lazy-help`) e uma statusline `[LAZY]`/
+`[LAZY:ULTRA]`. O Copilot só recebe a escada no início da sessão (sem troca de nível
+em runtime nem propagação pra subagente) — mesmo limite que o Ponytail original tem
+nessa plataforma.
+
 ## Testes
 
 ```powershell
