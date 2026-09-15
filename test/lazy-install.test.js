@@ -7,6 +7,7 @@ import {
   addCodexLazyHooks,
   removeCodexLazyHooks,
   hasCodexLazyHooks,
+  buildCopilotLazyConfig,
 } from '../src/lazy/install.js';
 
 test('addClaudeLazyHooks adiciona os 3 eventos', () => {
@@ -73,4 +74,11 @@ test('removeCodexLazyHooks tira só os hooks lazy', () => {
   const next = removeCodexLazyHooks(withBoth);
   assert.equal(hasCodexLazyHooks(next), false);
   assert.equal(next.hooks.PreToolUse.length, 1);
+});
+
+test('buildCopilotLazyConfig registra sessionStart e userPromptSubmitted, sem subagent', () => {
+  const cfg = buildCopilotLazyConfig('/x/econ.js');
+  assert.ok(cfg.hooks.sessionStart[0].bash.includes('lazy-hook'));
+  assert.ok(cfg.hooks.userPromptSubmitted[0].bash.includes('lazy-hook'));
+  assert.equal(cfg.hooks.subagentStart, undefined);
 });

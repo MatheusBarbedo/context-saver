@@ -71,3 +71,27 @@ export function hasCodexLazyHooks(config) {
   const list = config?.hooks?.SessionStart ?? [];
   return list.some(isLazyEntry);
 }
+
+export function buildCopilotLazyConfig(econJs) {
+  return {
+    version: 1,
+    hooks: {
+      sessionStart: [
+        {
+          type: 'command',
+          bash: lazyHookCommand(econJs, 'copilot', 'session-start'),
+          powershell: lazyHookCommand(econJs, 'copilot', 'session-start'),
+          timeoutSec: 5,
+        },
+      ],
+      userPromptSubmitted: [
+        {
+          type: 'command',
+          bash: lazyHookCommand(econJs, 'copilot', 'prompt-submit'),
+          powershell: lazyHookCommand(econJs, 'copilot', 'prompt-submit'),
+          timeoutSec: 5,
+        },
+      ],
+    },
+  };
+}
