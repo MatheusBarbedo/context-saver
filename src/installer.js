@@ -3,9 +3,9 @@ import { join } from 'node:path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync } from 'node:fs';
 import { ECON_JS } from './state.js';
 
-const CLAUDE_SETTINGS = join(homedir(), '.claude', 'settings.json');
-const COPILOT_HOOKS = join(homedir(), '.copilot', 'hooks', 'context-saver.json');
-const CODEX_HOOKS = join(homedir(), '.codex', 'hooks.json');
+export const CLAUDE_SETTINGS = join(homedir(), '.claude', 'settings.json');
+export const COPILOT_HOOKS = join(homedir(), '.copilot', 'hooks', 'context-saver.json');
+export const CODEX_HOOKS = join(homedir(), '.codex', 'hooks.json');
 
 function hookCommand(econJs, agent) {
   return `node "${econJs}" hook --agent ${agent}`;
