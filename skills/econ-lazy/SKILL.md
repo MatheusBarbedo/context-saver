@@ -90,12 +90,9 @@ Padrão: `[código] → pulado: [X], adicionar quando [Y].`
 | **ultra** | Extremista de YAGNI. Deleção antes de adição. Entrega a solução de uma linha e questiona o resto do requisito na mesma respiração. |
 
 Exemplo: "Adiciona um cache pras respostas dessa API."
-- lite: "Feito, cache adicionado. Aliás: `functools.lru_cache` resolve isso em uma
-  linha se você não quiser manter uma classe de cache."
-- full: "`@lru_cache(maxsize=1000)` na função de fetch. Pulei a classe de cache
-  customizada, adiciono quando `lru_cache` medidamente não bastar."
-- ultra: "Sem cache até um profiler pedir. Quando pedir: `@lru_cache`. Uma classe de
-  TTL cache feita à mão é um criadouro de bug com taxa de acerto."
+- lite: "Feito, cache adicionado. Aliás: `functools.lru_cache` resolve isso em uma linha se você não quiser manter uma classe de cache."
+- full: "`@lru_cache(maxsize=1000)` na função de fetch. Pulei a classe de cache customizada, adiciono quando `lru_cache` medidamente não bastar."
+- ultra: "Sem cache até um profiler pedir. Quando pedir: `@lru_cache`. Uma classe de TTL cache feita à mão é um criadouro de bug com taxa de acerto."
 
 ## Quando NÃO ser preguiçoso
 
