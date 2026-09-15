@@ -14,9 +14,20 @@ import {
 } from './src/installer.js';
 import { aggregate } from './src/metrics.js';
 import { readRecovery } from './src/show.js';
-import { purgeData } from './src/state.js';
+import { purgeData, ECON_JS } from './src/state.js';
 import { runChecks, applyFix } from './src/doctor.js';
 import { dispatchLazyHook } from './src/lazy/dispatch.js';
+import {
+  installLazyClaude,
+  uninstallLazyClaude,
+  installLazyCopilot,
+  uninstallLazyCopilot,
+  installLazyCodex,
+  uninstallLazyCodex,
+  statusLazyPaths,
+} from './src/lazy/setup.js';
+import { setDefaultMode } from './src/lazy/state.js';
+import { scanDebt, formatDebtReport } from './src/lazy/debt.js';
 
 function flagValue(args, flag) {
   const i = args.indexOf(flag);
@@ -181,9 +192,48 @@ switch (cmd) {
     }
     break;
   }
+  case 'lazy': {
+    const sub = rest[0];
+    if (sub === 'install') {
+      const target = rest[1];
+      if (target === 'claude' || !target) console.log('Claude lazy:', installLazyClaude(ECON_JS));
+      if (target === 'copilot' || !target) console.log('Copilot lazy:', installLazyCopilot(ECON_JS));
+      if (target === 'codex' || !target) console.log('Codex lazy:', installLazyCodex(ECON_JS));
+    } else if (sub === 'uninstall') {
+      const purge = rest.includes('--purge');
+      const target = rest.slice(1).find((a) => a !== '--purge');
+      if (target === 'claude' || !target) console.log('Claude lazy removido de', uninstallLazyClaude({ purge }));
+      if (target === 'copilot' || !target) console.log('Copilot lazy removido de', uninstallLazyCopilot());
+      if (target === 'codex' || !target) console.log('Codex lazy removido de', uninstallLazyCodex());
+    } else if (sub === 'status') {
+      const s = statusLazyPaths();
+      console.log('Claude:', s.claude.installed ? 'instalado' : 'não instalado', `(${s.claude.path})`, '| skills:', s.claude.skills ? 'sim' : 'não');
+      console.log('Copilot:', s.copilot.installed ? 'instalado' : 'não instalado', `(${s.copilot.path})`);
+      console.log('Codex:', s.codex.installed ? 'instalado' : 'não instalado', `(${s.codex.path})`);
+    } else if (sub === 'debt') {
+      console.log(formatDebtReport(scanDebt()));
+    } else if (sub === 'default') {
+      const mode = rest[1];
+      const target = rest[2];
+      if (!['off', 'lite', 'full', 'ultra'].includes(mode)) {
+        console.error('Uso: node econ.js lazy default <off|lite|full|ultra> [claude|copilot|codex]');
+        process.exit(1);
+      }
+      for (const agent of target ? [target] : ['claude', 'copilot', 'codex']) {
+        setDefaultMode(agent, mode);
+      }
+      console.log(`Nível padrão definido como ${mode}${target ? ` (${target})` : ' (claude, copilot, codex)'}.`);
+    } else {
+      console.log(
+        'Uso: node econ.js lazy <install [claude|copilot|codex] | uninstall [claude|copilot|codex] [--purge] | status | debt | default <off|lite|full|ultra> [agente]>',
+      );
+      process.exit(sub ? 1 : 0);
+    }
+    break;
+  }
   default:
     console.log(
-      'Uso: node econ.js <install [claude|copilot|codex] | uninstall [claude|copilot|codex] [--purge] | on | off | status | stats | show <id> | doctor | hook | run <cmd>>',
+      'Uso: node econ.js <install [claude|copilot|codex] | uninstall [claude|copilot|codex] [--purge] | on | off | status | stats | show <id> | doctor | hook | run <cmd> | lazy <install|uninstall|status|debt|default>>',
     );
     process.exit(cmd ? 1 : 0);
 }

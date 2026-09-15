@@ -1,10 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 
 const ECON = join(dirname(fileURLToPath(import.meta.url)), '..', 'econ.js');
+const ECON_JS = ECON;
 
 function runEcon(args, input) {
   return spawnSync('node', [ECON, ...args], { input, encoding: 'utf8' });
@@ -78,4 +81,21 @@ test('lazy-hook sem --event vira evento undefined e nao quebra', () => {
   const r = runEcon(['lazy-hook', '--agent', 'claude'], '{}');
   assert.equal(r.status, 0);
   assert.match(r.stderr, /evento de hook desconhecido: undefined/);
+});
+
+test('lazy debt sem marcador imprime mensagem de vazio', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'econ-cli-lazy-debt-'));
+  const out = execFileSync('node', [ECON_JS, 'lazy', 'debt'], { cwd: dir, encoding: 'utf8' });
+  assert.ok(out.includes('Nenhuma dívida econ: encontrada.'));
+});
+
+test('lazy status sem instalação reporta os 3 agentes como não instalados', () => {
+  const home = mkdtempSync(join(tmpdir(), 'econ-cli-lazy-home-'));
+  const out = execFileSync('node', [ECON_JS, 'lazy', 'status'], {
+    encoding: 'utf8',
+    env: { ...process.env, HOME: home, USERPROFILE: home },
+  });
+  assert.match(out, /claude.*não/i);
+  assert.match(out, /copilot.*não/i);
+  assert.match(out, /codex.*não/i);
 });
