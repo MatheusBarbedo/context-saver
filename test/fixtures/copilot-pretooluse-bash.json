@@ -1,0 +1,10 @@
+{
+  "sessionId": "session-123",
+  "timestamp": 1704614600000,
+  "cwd": "/path/to/project",
+  "toolName": "bash",
+  "toolArgs": {
+    "command": "git status",
+    "description": "Check repository status"
+  }
+}

@@ -1,7 +1,7 @@
 import { splitLines, countHidden } from './helpers.js';
 import { withRecovery } from '../tee.js';
 
-const CMD = /(^|\s)(npm\s+(install|i|ci)\b|pnpm\s+(install|i|add)\b|yarn\s+(install|add)\b|pip\s+install\b|pip3\s+install\b)/;
+const CMD = /^\s*(?:npm\s+(?:install|i|ci)|pnpm\s+(?:install|i|add)|yarn\s+(?:install|add)|pip3?\s+install)\b/;
 const RESULT = /(added|removed|changed|audited|Successfully installed|packages in|up to date|funding|found\s+\d+\s+vulnerab|error|ERR!|failed)/i;
 
 const installFilter = {

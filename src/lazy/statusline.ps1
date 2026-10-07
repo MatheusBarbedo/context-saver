@@ -1,4 +1,5 @@
-$Flag = Join-Path $HOME ".context-saver\lazy-state-claude.json"
+$Base = if ($env:ECON_HOME) { $env:ECON_HOME } else { Join-Path $HOME ".context-saver" }
+$Flag = Join-Path $Base "lazy-state-claude.json"
 if (-not (Test-Path $Flag)) { exit 0 }
 
 $Mode = ""

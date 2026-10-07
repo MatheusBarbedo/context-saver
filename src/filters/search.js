@@ -1,7 +1,7 @@
 import { splitLines, countHidden } from './helpers.js';
 import { withRecovery } from '../tee.js';
 
-const CMD = /(^|\s)(grep|egrep|rg|ag|find)\b/;
+const CMD = /^\s*(?:grep|egrep|rg|ag|find)\b/;
 const SAMPLE = 30;
 
 const searchFilter = {

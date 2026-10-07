@@ -1,14 +1,15 @@
 import { findFilter } from './filters/index.js';
 import { ECON_JS } from './state.js';
+import { isSimpleCommand, hasFindAction, isLongRunning } from './guard.js';
 
-function extractCommand(j) {
-  if (j.tool_input && typeof j.tool_input.command === 'string') {
-    return { command: j.tool_input.command, tool: j.tool_name };
+function extractCall(j) {
+  if (j && j.tool_input && typeof j.tool_input.command === 'string') {
+    return { args: j.tool_input, tool: j.tool_name };
   }
-  if (j.toolArgs && typeof j.toolArgs.command === 'string') {
-    return { command: j.toolArgs.command, tool: j.toolName };
+  if (j && j.toolArgs && typeof j.toolArgs.command === 'string') {
+    return { args: j.toolArgs, tool: j.toolName };
   }
-  return { command: null, tool: null };
+  return { args: null, tool: null };
 }
 
 function shellFor(tool) {
@@ -29,23 +30,30 @@ function wrap(command, econJs, shell, agent) {
   return `node "${econJs}" run ${shellArg}${agentArg}--b64 ${b64}`;
 }
 
-function rewriteNested(wrapped) {
+function rewriteNested(input) {
   return JSON.stringify({
     hookSpecificOutput: {
       hookEventName: 'PreToolUse',
       permissionDecision: 'allow',
       permissionDecisionReason: 'context-saver: saída comprimida',
-      updatedInput: { command: wrapped },
+      updatedInput: input,
     },
   });
 }
 
-function rewriteFlat(wrapped) {
+function rewriteFlat(input) {
   return JSON.stringify({
     permissionDecision: 'allow',
     permissionDecisionReason: 'context-saver: saída comprimida',
-    modifiedArgs: { command: wrapped },
+    modifiedArgs: input,
   });
+}
+
+function shouldWrap(args, cwd) {
+  const { command } = args;
+  if (command.includes('econ.js') || args.run_in_background === true) return false;
+  if (!isSimpleCommand(command) || hasFindAction(command)) return false;
+  return Boolean(findFilter(command)) && !isLongRunning(command, { cwd });
 }
 
 export function handle(inputString, { enabled = true, econJs = ECON_JS, agent = 'unknown' } = {}) {
@@ -57,12 +65,12 @@ export function handle(inputString, { enabled = true, econJs = ECON_JS, agent = 
   }
   if (!enabled) return neutral();
 
-  const { command, tool } = extractCommand(parsed);
-  if (!command) return neutral();
-  if (command.includes('econ.js')) return neutral();
-  if (!findFilter(command)) return neutral();
+  const { args, tool } = extractCall(parsed);
+  if (!args) return neutral();
+  const cwd = typeof parsed.cwd === 'string' ? parsed.cwd : undefined;
+  if (!shouldWrap(args, cwd)) return neutral();
 
-  const wrapped = wrap(command, econJs, shellFor(tool), agent);
-  const output = agent === 'copilot' ? rewriteFlat(wrapped) : rewriteNested(wrapped);
+  const updated = { ...args, command: wrap(args.command, econJs, shellFor(tool), agent) };
+  const output = agent === 'copilot' ? rewriteFlat(updated) : rewriteNested(updated);
   return { output, exitCode: 0 };
 }

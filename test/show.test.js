@@ -1,3 +1,4 @@
+import './isolate.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { teeSave } from '../src/tee.js';
@@ -12,4 +13,8 @@ test('readRecovery devolve tudo, intervalo e grep', () => {
 
 test('readRecovery com id inexistente lança', () => {
   assert.throws(() => readRecovery('000-zzzzzz'));
+});
+
+test('readRecovery com id inválido lança sem ler fora do tee', () => {
+  assert.throws(() => readRecovery('../../etc/passwd'), /inválido/);
 });

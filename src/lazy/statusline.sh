@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-flag="$HOME/.context-saver/lazy-state-claude.json"
+flag="${ECON_HOME:-$HOME/.context-saver}/lazy-state-claude.json"
 [ -f "$flag" ] || exit 0
 
 mode=$(node -e "try{const s=JSON.parse(require('fs').readFileSync('$flag','utf8'));process.stdout.write(s.mode||'')}catch(e){}")

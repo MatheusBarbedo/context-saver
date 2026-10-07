@@ -1,11 +1,11 @@
 import { join } from 'node:path';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { STATE_DIR } from '../state.js';
+import { stateDir } from '../state.js';
 
 export const VALID_MODES = ['off', 'lite', 'full', 'ultra'];
 
 function statePath(agent) {
-  return join(STATE_DIR, `lazy-state-${agent}.json`);
+  return join(stateDir(), `lazy-state-${agent}.json`);
 }
 
 export function readLazyState(agent) {
@@ -17,7 +17,7 @@ export function readLazyState(agent) {
 }
 
 export function writeLazyState(agent, state) {
-  mkdirSync(STATE_DIR, { recursive: true });
+  mkdirSync(stateDir(), { recursive: true });
   writeFileSync(statePath(agent), JSON.stringify(state, null, 2), 'utf8');
 }
 

@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { findFilter } from './filters/index.js';
 import { genericFilters } from './filters/generic.js';
 import { estimateTokens } from './tokens.js';
-import { record, METRICS_FILE } from './metrics.js';
+import { record, metricsFile as defaultMetricsFile } from './metrics.js';
 
 const genericFilter = genericFilters[0];
 
@@ -30,7 +30,7 @@ function defaultExec(command, shellHint) {
   return spawnSync(command, { ...base, shell: true });
 }
 
-export function runAndCompress(command, { shell, agent, exec = defaultExec, metricsFile = METRICS_FILE } = {}) {
+export function runAndCompress(command, { shell, agent, exec = defaultExec, metricsFile = defaultMetricsFile() } = {}) {
   const res = exec(command, shell) || {};
   const rawStdout = res.stdout ?? '';
   const rawStderr = res.stderr ?? '';

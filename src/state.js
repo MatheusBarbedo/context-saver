@@ -6,23 +6,28 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node
 export const ECON_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 export const ECON_JS = join(ECON_ROOT, 'econ.js');
 
-export const STATE_DIR = join(homedir(), '.context-saver');
-const STATE_FILE = join(STATE_DIR, 'state.json');
+export function stateDir() {
+  return process.env.ECON_HOME || join(homedir(), '.context-saver');
+}
+
+function stateFile() {
+  return join(stateDir(), 'state.json');
+}
 
 export function isEnabled() {
   try {
-    if (!existsSync(STATE_FILE)) return true;
-    return JSON.parse(readFileSync(STATE_FILE, 'utf8')).enabled !== false;
+    if (!existsSync(stateFile())) return true;
+    return JSON.parse(readFileSync(stateFile(), 'utf8')).enabled !== false;
   } catch {
     return true;
   }
 }
 
 export function setEnabled(value) {
-  mkdirSync(STATE_DIR, { recursive: true });
-  writeFileSync(STATE_FILE, JSON.stringify({ enabled: value }, null, 2), 'utf8');
+  mkdirSync(stateDir(), { recursive: true });
+  writeFileSync(stateFile(), JSON.stringify({ enabled: value }, null, 2), 'utf8');
 }
 
-export function purgeData(dir = STATE_DIR) {
+export function purgeData(dir = stateDir()) {
   if (existsSync(dir)) rmSync(dir, { recursive: true, force: true });
 }

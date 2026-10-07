@@ -1,3 +1,4 @@
+import './isolate.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { setDefaultMode, setSessionMode, readSessionMode, clearSessionMode } from '../src/lazy/state.js';

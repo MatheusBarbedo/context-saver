@@ -1,10 +1,12 @@
-import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { appendFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
+import { stateDir } from './state.js';
 
-export const METRICS_FILE = join(homedir(), '.context-saver', 'metrics.jsonl');
+export function metricsFile() {
+  return join(stateDir(), 'metrics.jsonl');
+}
 
-export function record(entry, file = METRICS_FILE) {
+export function record(entry, file = metricsFile()) {
   try {
     mkdirSync(join(file, '..'), { recursive: true });
     appendFileSync(file, JSON.stringify({ ts: Date.now(), ...entry }) + '\n', 'utf8');
@@ -13,7 +15,7 @@ export function record(entry, file = METRICS_FILE) {
   }
 }
 
-export function aggregate(file = METRICS_FILE) {
+export function aggregate(file = metricsFile()) {
   const agg = {
     count: 0,
     totalBytesBefore: 0,

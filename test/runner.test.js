@@ -1,3 +1,4 @@
+import './isolate.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, existsSync, readFileSync } from 'node:fs';
@@ -49,7 +50,7 @@ test('stdout ausente não quebra (passthrough seguro)', () => {
 test('runAndCompress grava métrica quando filtra', () => {
   const dir = mkdtempSync(join(tmpdir(), 'econ-rm-'));
   const file = join(dir, 'metrics.jsonl');
-  const many = Array.from({ length: 30 }, (_, i) => `commit ${i}`).join('\n');
+  const many = Array.from({ length: 30 }, (_, i) => `a1b2c3${i} feat: descricao realista do commit numero ${i} no historico`).join('\n');
   runAndCompress('git log', { exec: fakeExec({ stdout: many, stderr: '', status: 0 }), metricsFile: file });
   assert.ok(existsSync(file));
   const rec = JSON.parse(readFileSync(file, 'utf8').split('\n').filter(Boolean)[0]);

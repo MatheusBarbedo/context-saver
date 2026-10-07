@@ -1,7 +1,7 @@
 import { splitLines, countHidden } from './helpers.js';
 import { withRecovery } from '../tee.js';
 
-const CMD = /(^|\s)(vite|webpack|rollup|esbuild|(next|nuxt|ng)\s+build|npm\s+run\s+build|pnpm\s+build)\b/;
+const CMD = /^\s*(?:(?:npx\s+)?(?:vite\s+build|webpack|rollup|esbuild|(?:next|nuxt|ng)\s+build)|npm\s+run\s+build|pnpm\s+build)\b/;
 const KEEP = /(error|warning|failed|\.(js|css|html|map)\b|\bkB\b|\bMB\b|built in|compiled|Compiled|bundle)/i;
 
 const bundlerFilter = {

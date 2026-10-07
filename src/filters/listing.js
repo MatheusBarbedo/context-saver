@@ -1,7 +1,7 @@
 import { splitLines, countHidden } from './helpers.js';
 import { withRecovery } from '../tee.js';
 
-const CMD = /(^|\s)(ls|dir|tree|Get-ChildItem|gci)\b/;
+const CMD = /^\s*(?:ls|dir|tree|Get-ChildItem|gci)\b/;
 
 const listingFilter = {
   name: 'listing',

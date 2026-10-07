@@ -1,7 +1,7 @@
 import { splitLines, countHidden } from './helpers.js';
 import { withRecovery } from '../tee.js';
 
-const CMD = /(^|\s)(tsc|eslint|ruff|flake8|clippy|cargo\s+clippy)\b/;
+const CMD = /^\s*(?:npx\s+)?(?:tsc|eslint|ruff|flake8|clippy|cargo\s+clippy)\b/;
 const PROBLEM = /(error|warning|erro|aviso|✖|problem|\bE\d{3}\b|\bTS\d+\b)/i;
 
 const lintFilter = {

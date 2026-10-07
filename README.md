@@ -41,7 +41,7 @@ node econ.js uninstall --purge   # remove os tres hooks e zera o historico
 ```
 
 Sem argumento, desinstala dos três. A flag `--purge` também apaga
-`~/.context-saver/` (métricas e o estado ligado/desligado), como um recomeço do zero.
+`~/.context-saver/` (métricas, estado ligado/desligado e saídas guardadas), como um recomeço do zero.
 Sem `--purge`, o histórico de métricas continua intacto mesmo desinstalado.
 
 ### `node econ.js on` / `node econ.js off`
@@ -63,15 +63,19 @@ Mostra quantos comandos foram medidos, a economia de tokens (antes -> depois)
 total, por família de filtro e por agente (`claude`/`copilot`/`codex`/`unknown`,
 sendo `unknown` os registros antigos, de antes de existir essa separação, ou de
 um hook instalado antes da última atualização). Os dados ficam em
-`~/.context-saver/metrics.jsonl`.
+`~/.context-saver/metrics.jsonl` (ou em `$ECON_HOME/metrics.jsonl`, se definido).
 
 ### `node econ.js show <id> [--lines A-B] [--grep X]`
 
-Quando um resumo esconde linhas, ele imprime um id de recuperação:
+Quando um resumo esconde linhas, ele informa o caminho absoluto da saída completa:
 
 ```
-... +120 linhas ocultas, recupere com: econ show <id> [--lines A-B] [--grep X]
+… +120 linhas ocultas. Saída completa: /home/voce/.context-saver/tee/<id>.log (leia só o trecho necessário)
 ```
+
+O agente lê direto do arquivo só o trecho de que precisa, sem depender de `econ`
+no PATH. O `show` continua disponível para consulta manual pelo id (o nome do
+arquivo sem `.log`):
 
 ```powershell
 node econ.js show <id>                 # tudo
@@ -79,7 +83,8 @@ node econ.js show <id> --lines 40-80   # só um intervalo
 node econ.js show <id> --grep error    # só as linhas que casam
 ```
 
-Assim o agente puxa apenas o trecho que precisa, em vez de reler a saída inteira.
+Os arquivos ficam em `~/.context-saver/tee/`, com permissão só do dono (0700 na
+pasta, 0600 nos arquivos), e são apagados depois de 24h.
 
 ### `node econ.js doctor [--fix]`
 
@@ -105,11 +110,32 @@ devolve o resultado preservando o código de saída.
 
 O hook `PreToolUse` reescreve comandos-alvo para
 `node econ.js run --agent <claude|copilot|codex> --b64 <cmd>`. O runner executa
-o comando real, aplica um filtro que corta o ruído, salva a saída completa num
-arquivo temporário (recuperável com `econ show`), registra a métrica de
+o comando real, aplica um filtro que corta o ruído, salva a saída completa em
+`~/.context-saver/tee/` (o resumo informa o caminho), registra a métrica de
 economia (por família e por agente) e devolve só o resumo, preservando o
-código de saída real. Comandos sem filtro caem no filtro genérico (cabeça +
-cauda) quando a saída é longa.
+código de saída real. Quando o filtro da família não sabe comprimir, o filtro
+genérico (cabeça + cauda) entra se a saída for longa.
+
+O hook só reescreve quando todas as regras abaixo valem (`src/guard.js`). Fora
+disso o comando roda cru, pelo fluxo normal de permissão do agente.
+
+- Comando simples: sem `&&`, `||`, `;`, `|`, `&`, `$(`, crase, parênteses ou
+  redirecionamento. Operadores entre aspas não contam.
+- A família reconhecida está no primeiro token (`npx` opcional na frente).
+- Não é `find` com `-delete`, `-exec`, `-execdir`, `-ok`, `-okdir`, `-fprint`,
+  `-fprint0`, `-fprintf` ou `-fls`.
+- Não pediu `run_in_background`.
+- Não fica em execução contínua: `--watch`/`--watchAll` (exceto `=false`), `-w`
+  em `tsc`/`webpack`/`rollup`/`vite`, `webpack serve`, `esbuild --serve`,
+  `docker compose up` sem `-d`/`--detach`/`--wait`, `docker compose logs -f`,
+  `watch`, `events`, `attach`, `stats` sem `--no-stream`, e scripts com `watch`
+  no nome. Para `npm`/`pnpm`/`yarn`, o script é lido do `package.json` do
+  diretório da sessão (inclusive scripts encadeados): `ng test` sem
+  `--watch=false`, `karma start` sem `--single-run`, `ng serve`, `vite` sem
+  `build`, `next dev`, `nuxt dev` e `nodemon` também ficam de fora.
+
+Ao reescrever, o hook mantém os demais argumentos da ferramenta (`timeout`,
+`description`, `run_in_background` etc.) e só troca o `command`.
 
 O Codex CLI usa o mesmo protocolo de hook do Claude Code (payload com
 `tool_input.command`, saída com `hookSpecificOutput.updatedInput`), então o
@@ -127,9 +153,11 @@ filtro **genérico** para qualquer outra saída longa.
 
 1. Crie `src/filters/<familia>.js` exportando um array de filtros no formato
    `{ name, test(command), run({command, stdout, stderr, exitCode}) }`
-   (retorne `null` quando não souber comprimir com segurança).
+   (retorne `null` quando não souber comprimir com segurança). O `test` deve
+   casar só no início do comando (`^\s*`).
 2. Registre em `src/filters/index.js` (`ALL_FILTERS`), antes de `genericFilters`.
-3. Escreva `test/filters.<familia>.test.js` e rode `node --test`.
+3. Escreva `test/filters.<familia>.test.js` começando com `import './isolate.js';`
+   e rode `npm test`.
 
 ## Modo econômico de código (`econ.js lazy`)
 
@@ -158,8 +186,12 @@ nessa plataforma.
 ## Testes
 
 ```powershell
-node --test
+npm test
 ```
+
+Roda `node --test test/*.test.js`. Cada arquivo de teste importa
+`test/isolate.js`, que aponta o `ECON_HOME` para uma pasta temporária: os testes
+não tocam no `~/.context-saver` real.
 
 ## Notas
 
@@ -167,7 +199,10 @@ node --test
   o comando de `toolArgs.command` e o installer registra o matcher
   `bash|powershell|run_in_terminal`.
 - Os comandos reescritos usam `permissionDecision: "allow"` (rodam sem o prompt
-  normal). Para exigir prompt, troque para `"ask"` em `src/hook-adapter.js`.
+  normal), por isso o hook só reescreve o que passa nas regras de
+  "Como funciona". Para exigir prompt, troque para `"ask"` em `src/hook-adapter.js`.
+- `ECON_HOME` muda o diretório de estado (métricas, liga/desliga, tee e modo
+  lazy). O padrão é `~/.context-saver`.
 - O runner reexecuta o comando no mesmo shell que o agente usou (detectado pelo
   hook). Se o bash não estiver no PATH, procura no Git Bash padrão; dá pra forçar
   um shell com a variável `ECON_SHELL`.
