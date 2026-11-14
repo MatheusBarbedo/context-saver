@@ -5,14 +5,17 @@ import { ECON_JS } from './state.js';
 
 export const CLAUDE_SETTINGS = join(homedir(), '.claude', 'settings.json');
 export const COPILOT_HOOKS = join(homedir(), '.copilot', 'hooks', 'context-saver.json');
-export const CODEX_HOOKS = join(homedir(), '.codex', 'hooks.json');
+// CODEX_HOME permite apontar para outro perfil do Codex.
+export const CODEX_HOME = process.env.CODEX_HOME || join(homedir(), '.codex');
+export const CODEX_HOOKS = join(CODEX_HOME, 'hooks.json');
 
 function hookCommand(econJs, agent) {
   return `node "${econJs}" hook --agent ${agent}`;
 }
 
 function isEconEntry(h) {
-  return typeof h?.command === 'string' && h.command.includes('econ.js') && h.command.includes('hook');
+  if (typeof h?.command === 'string' && h.command.includes('econ.js') && h.command.includes('hook')) return true;
+  return (h?.hooks ?? []).some(isEconEntry);
 }
 
 export function hasClaudeHook(settings) {
@@ -60,7 +63,11 @@ export function hasCodexHook(config) {
 export function removeCodexHook(config) {
   const next = structuredClone(config ?? {});
   if (!next.hooks?.PreToolUse) return next;
-  next.hooks.PreToolUse = next.hooks.PreToolUse.filter((h) => !isEconEntry(h));
+  next.hooks.PreToolUse = next.hooks.PreToolUse.flatMap((group) => {
+    if (!Array.isArray(group?.hooks)) return isEconEntry(group) ? [] : [group];
+    const hooks = group.hooks.filter((h) => !isEconEntry(h));
+    return hooks.length ? [{ ...group, hooks }] : [];
+  });
   return next;
 }
 
@@ -68,7 +75,10 @@ export function addCodexHook(config, econJs) {
   const next = removeCodexHook(config ?? {});
   next.hooks = next.hooks ?? {};
   next.hooks.PreToolUse = next.hooks.PreToolUse ?? [];
-  next.hooks.PreToolUse.push({ command: hookCommand(econJs, 'codex') });
+  next.hooks.PreToolUse.push({
+    matcher: 'Bash',
+    hooks: [{ type: 'command', command: hookCommand(econJs, 'codex') }],
+  });
   return next;
 }
 
@@ -89,7 +99,7 @@ export function installCopilot(econJs = ECON_JS) {
 export function installCodex(econJs = ECON_JS) {
   const current = existsSync(CODEX_HOOKS) ? JSON.parse(readFileSync(CODEX_HOOKS, 'utf8')) : {};
   const next = addCodexHook(current, econJs);
-  mkdirSync(join(homedir(), '.codex'), { recursive: true });
+  mkdirSync(CODEX_HOME, { recursive: true });
   writeFileSync(CODEX_HOOKS, JSON.stringify(next, null, 2), 'utf8');
   return CODEX_HOOKS;
 }

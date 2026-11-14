@@ -5,8 +5,7 @@ Configura uma vez e a saída de comandos verbosos (`git status`, `npm test`, `ts
 `docker build`, `curl -v`, `grep -r`...) chega comprimida ao agente, automaticamente.
 Node.js puro, **zero dependências**, **sem `npm install`**.
 
-O hook mora na configuração global de cada agente (`~/.claude`, `~/.copilot`,
-`~/.codex`). Funciona igual rodando o agente
+O hook mora na configuração global de cada agente (`~/.claude`, `~/.copilot`, `~/.codex`, ou no diretório indicado por `CODEX_HOME`). Funciona igual rodando o agente
 pelo terminal puro, por SSH ou de dentro do VSCode, já que todos esses lugares
 chamam o mesmo binário do agente por baixo.
 
@@ -21,7 +20,7 @@ quem chamou, sem depender de adivinhar pelo formato do JSON.
 ```powershell
 node econ.js install claude     # injeta hook em ~/.claude/settings.json
 node econ.js install copilot    # injeta hook em ~/.copilot/hooks/
-node econ.js install codex      # injeta hook em ~/.codex/hooks.json
+node econ.js install codex      # injeta hook em ~/.codex/hooks.json (ou CODEX_HOME/hooks.json)
 ```
 
 Sem argumento, instala nos três. É idempotente: rodar de novo substitui o hook
@@ -36,7 +35,7 @@ Remove o hook instalado, sem apagar o restante da configuração do agente.
 ```powershell
 node econ.js uninstall claude    # tira o hook de ~/.claude/settings.json
 node econ.js uninstall copilot   # apaga ~/.copilot/hooks/context-saver.json
-node econ.js uninstall codex     # tira o hook de ~/.codex/hooks.json
+node econ.js uninstall codex     # tira o hook de ~/.codex/hooks.json (ou CODEX_HOME/hooks.json)
 node econ.js uninstall --purge   # remove os tres hooks e zera o historico
 ```
 

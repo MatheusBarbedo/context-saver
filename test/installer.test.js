@@ -54,7 +54,9 @@ test('addCodexHook injeta hook PreToolUse e é idempotente', () => {
   let config = {};
   config = addCodexHook(config, ECON);
   assert.ok(hasCodexHook(config));
-  assert.match(config.hooks.PreToolUse[0].command, /econ\.js" hook --agent codex$/);
+  assert.equal(config.hooks.PreToolUse[0].matcher, 'Bash');
+  assert.equal(config.hooks.PreToolUse[0].hooks[0].type, 'command');
+  assert.match(config.hooks.PreToolUse[0].hooks[0].command, /econ\.js" hook --agent codex$/);
   const once = JSON.stringify(config);
   config = addCodexHook(config, ECON);
   assert.equal(JSON.stringify(config), once);
